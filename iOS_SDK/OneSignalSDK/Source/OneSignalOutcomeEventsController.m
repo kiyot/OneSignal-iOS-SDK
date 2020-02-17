@@ -194,6 +194,34 @@ NSMutableArray<OSUniqueOutcomeNotification *> *attributedUniqueOutcomeEventNotif
     [self sendOutcomeEventRequest:appId deviceType:deviceType outcome:outcome successBlock:success];
 }
 
+- (void)sendClickOutcomeEventWithValue:(NSString * _Nonnull)name
+                   value:(NSNumber * _Nullable)weight
+                   appId:(NSString * _Nonnull)appId
+              deviceType:(NSNumber * _Nonnull)deviceType {
+    
+    OSSessionResult *sessionResult = [self.osSessionManager getIAMSessionResult];
+
+    if (sessionResult.session == DISABLED) {
+        [OneSignal onesignal_Log:ONE_S_LL_VERBOSE message:@"Outcomes for current session are disabled"];
+        return;
+    }
+    
+    NSTimeInterval timestamp = [[NSDate date] timeIntervalSince1970];
+    OSOutcomeEvent *outcome = [[OSOutcomeEvent new] initWithSession:sessionResult.session
+                                                    notificationIds:sessionResult.notificationIds
+                                                               name:name
+                                                          timestamp:[NSNumber numberWithDouble:timestamp]
+                                                             weight:weight];
+
+    OneSignalRequest *request = [OSRequestSendOutcomesToServer unattributedWithOutcome:outcome
+                                                                appId:appId
+                                                           deviceType:deviceType];
+    [OneSignalClient.sharedClient executeRequest:request onSuccess:^(NSDictionary *result) {
+    } onFailure:^(NSError *error) {
+        [OneSignal onesignal_Log:ONE_S_LL_VERBOSE message:[NSString stringWithFormat:@"Sending outcome with name: %@ failed error: %@", outcome.name, error ? [error description] : nil]];
+    }];
+}
+
 /*
  Send an outcome request based on the current session of the app
  Handle the success and failure of the request

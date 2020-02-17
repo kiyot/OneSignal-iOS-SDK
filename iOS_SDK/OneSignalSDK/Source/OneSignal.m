@@ -2633,6 +2633,19 @@ static NSString *_lastnonActiveMessageId;
     [_outcomeEventsController sendOutcomeEventWithValue:name value:value appId:app_id deviceType:[NSNumber numberWithInt:DEVICE_TYPE_PUSH] successBlock:success];
 }
 
++ (void)sendClickActionOutcomeWithValue:(NSString * _Nonnull)name value:(NSNumber * _Nonnull)value {
+    // return if the user has not granted privacy permissions
+    if ([self shouldLogMissingPrivacyConsentErrorWithMethodName:@"sendClickOutcomeWithValue:value:"])
+        return;
+
+    if (!_outcomeEventsController) {
+        [self onesignal_Log:ONE_S_LL_ERROR message:@"Make sure OneSignal init is called first"];
+        return;
+    }
+    
+    [_outcomeEventsController sendClickOutcomeEventWithValue:name value:value appId:app_id deviceType:[NSNumber numberWithInt:DEVICE_TYPE_PUSH]];
+}
+
 + (BOOL)isValidOutcomeEntry:(NSString * _Nonnull)name {
     if (!name || [name length] == 0) {
         [self onesignal_Log:ONE_S_LL_ERROR message:@"Outcome name must not be null or empty"];
